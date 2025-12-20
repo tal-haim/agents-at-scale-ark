@@ -76,7 +76,7 @@ func NewHTTPMemory(ctx context.Context, k8sClient client.Client, memoryName, nam
 	}, nil
 }
 
-// createConversation calls cluster-memory to create a new conversation and get its ID.
+// createConversation calls broker to create a new conversation and get its ID.
 // If conversationID is already provided (non-empty), it returns that ID without making an HTTP call.
 func createConversation(ctx context.Context, httpClient *http.Client, baseURL, conversationID string) (string, error) {
 	if conversationID != "" {
@@ -300,6 +300,16 @@ func (m *HTTPMemory) GetMessages(ctx context.Context) ([]Message, error) {
 // GetConversationID returns the current conversation ID
 func (m *HTTPMemory) GetConversationID() string {
 	return m.conversationId
+}
+
+// GetBaseURL returns the memory service base URL for trace routing
+func (m *HTTPMemory) GetBaseURL() string {
+	return m.baseURL
+}
+
+// GetName returns the memory resource name
+func (m *HTTPMemory) GetName() string {
+	return m.name
 }
 
 // Close closes the HTTP client connections
