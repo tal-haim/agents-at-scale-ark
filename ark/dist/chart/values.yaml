@@ -1,6 +1,12 @@
 # [MANAGER]: Manager Deployment Configurations
 controllerManager:
   replicas: 1
+  # Enable hostNetwork for clusters using overlay CNI (Calico, Cilium VXLAN, Weave, etc.)
+  # where pod IPs are outside the VPC CIDR and unreachable from EKS control plane.
+  # When true, the pod uses the node's IP address for webhook connectivity.
+  hostNetwork: false
+  # DNS policy when using hostNetwork. Use ClusterFirstWithHostNet to resolve cluster DNS.
+  dnsPolicy: ClusterFirst
   container:
     image:
       repository: ghcr.io/mckinsey/agents-at-scale-ark/ark-controller

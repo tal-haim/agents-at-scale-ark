@@ -25,6 +25,12 @@ spec:
         {{- end }}
         {{- end }}
     spec:
+      {{- if .Values.controllerManager.hostNetwork }}
+      hostNetwork: true
+      dnsPolicy: {{ .Values.controllerManager.dnsPolicy | default "ClusterFirstWithHostNet" }}
+      {{- else if .Values.controllerManager.dnsPolicy }}
+      dnsPolicy: {{ .Values.controllerManager.dnsPolicy }}
+      {{- end }}
       containers:
         - name: manager
           args:
