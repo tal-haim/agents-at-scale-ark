@@ -46,17 +46,24 @@ export type AgentDetailResponseWithA2A = AgentDetailResponse & {
 // For UI compatibility, we'll map the API response to include an id field
 export type Agent = AgentDetailResponseWithA2A & { id: string };
 
+// Helper to build params object with optional namespace
+const withNamespace = (namespace?: string) =>
+  namespace ? { params: { namespace } } : undefined;
+
 // CRUD Operations
 export const agentsService = {
   // Get all agents
-  async getAll(): Promise<Agent[]> {
-    const response = await apiClient.get<AgentListResponse>(`/api/v1/agents`);
+  async getAll(namespace?: string): Promise<Agent[]> {
+    const response = await apiClient.get<AgentListResponse>(
+      `/api/v1/agents`,
+      withNamespace(namespace),
+    );
 
     // Map the response items to include id for UI compatibility
     const agents = await Promise.all(
       response.items.map(async item => {
         // Fetch detailed info for each agent to get full data
-        const detailed = await agentsService.getByName(item.name);
+        const detailed = await agentsService.getByName(item.name, namespace);
         return detailed!;
       }),
     );
@@ -65,10 +72,11 @@ export const agentsService = {
   },
 
   // Get a single agent by name
-  async getByName(name: string): Promise<Agent | null> {
+  async getByName(name: string, namespace?: string): Promise<Agent | null> {
     try {
       const response = await apiClient.get<AgentDetailResponse>(
         `/api/v1/agents/${name}`,
+        withNamespace(namespace),
       );
       return {
         ...response,
@@ -83,16 +91,17 @@ export const agentsService = {
   },
 
   // Get a single agent by ID (for UI compatibility - ID is actually the name)
-  async getById(id: number | string): Promise<Agent | null> {
+  async getById(id: number | string, namespace?: string): Promise<Agent | null> {
     // Convert numeric ID to string name
     const name = String(id);
-    return agentsService.getByName(name);
+    return agentsService.getByName(name, namespace);
   },
 
-  async create(agent: AgentCreateRequest): Promise<Agent> {
+  async create(agent: AgentCreateRequest, namespace?: string): Promise<Agent> {
     const response = await apiClient.post<AgentDetailResponse>(
       `/api/v1/agents`,
       agent,
+      withNamespace(namespace),
     );
 
     trackEvent({
@@ -113,11 +122,13 @@ export const agentsService = {
   async update(
     name: string,
     updates: AgentUpdateRequest,
+    namespace?: string,
   ): Promise<Agent | null> {
     try {
       const response = await apiClient.put<AgentDetailResponse>(
         `/api/v1/agents/${name}`,
         updates,
+        withNamespace(namespace),
       );
 
       trackEvent({
@@ -143,14 +154,15 @@ export const agentsService = {
   async updateById(
     id: number | string,
     updates: AgentUpdateRequest,
+    namespace?: string,
   ): Promise<Agent | null> {
     const name = String(id);
-    return agentsService.update(name, updates);
+    return agentsService.update(name, updates, namespace);
   },
 
-  async delete(name: string): Promise<boolean> {
+  async delete(name: string, namespace?: string): Promise<boolean> {
     try {
-      await apiClient.delete(`/api/v1/agents/${name}`);
+      await apiClient.delete(`/api/v1/agents/${name}`, withNamespace(namespace));
 
       trackEvent({
         name: 'agent_deleted',
@@ -169,8 +181,8 @@ export const agentsService = {
   },
 
   // Delete by ID (for UI compatibility)
-  async deleteById(id: number | string): Promise<boolean> {
+  async deleteById(id: number | string, namespace?: string): Promise<boolean> {
     const name = String(id);
-    return agentsService.delete(name);
+    return agentsService.delete(name, namespace);
   },
 };

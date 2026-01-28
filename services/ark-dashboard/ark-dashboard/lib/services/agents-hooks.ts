@@ -4,9 +4,13 @@ import { agentsService } from './agents';
 
 export const GET_ALL_AGENTS_QUERY_KEY = 'get-all-agents';
 
-export const useGetAllAgents = () => {
+type UseGetAllAgentsProps = {
+  namespace?: string;
+};
+
+export const useGetAllAgents = (props?: UseGetAllAgentsProps) => {
   return useQuery({
-    queryKey: [GET_ALL_AGENTS_QUERY_KEY],
-    queryFn: agentsService.getAll,
+    queryKey: [GET_ALL_AGENTS_QUERY_KEY, props?.namespace],
+    queryFn: () => agentsService.getAll(props?.namespace),
   });
 };

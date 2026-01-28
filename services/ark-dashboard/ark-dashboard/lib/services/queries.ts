@@ -4,26 +4,38 @@ import type { components } from '@/lib/api/generated/types';
 
 type QueryListResponse = components['schemas']['QueryListResponse'];
 type QueryDetailResponse = components['schemas']['QueryDetailResponse'];
-type QueryCreateRequest = components['schemas']['QueryCreateRequest'];
+export type QueryCreateRequest = components['schemas']['QueryCreateRequest'];
 type QueryUpdateRequest = components['schemas']['QueryUpdateRequest'];
 
-export const queriesService = {
-  async list(): Promise<QueryListResponse> {
-    const response = await apiClient.get<QueryListResponse>(`/api/v1/queries`);
-    return response;
-  },
+// Helper to build params object with optional namespace
+const withNamespace = (namespace?: string) =>
+  namespace ? { params: { namespace } } : undefined;
 
-  async get(queryName: string): Promise<QueryDetailResponse> {
-    const response = await apiClient.get<QueryDetailResponse>(
-      `/api/v1/queries/${queryName}`,
+export const queriesService = {
+  async list(namespace?: string): Promise<QueryListResponse> {
+    const response = await apiClient.get<QueryListResponse>(
+      `/api/v1/queries`,
+      withNamespace(namespace),
     );
     return response;
   },
 
-  async create(query: QueryCreateRequest): Promise<QueryDetailResponse> {
+  async get(queryName: string, namespace?: string): Promise<QueryDetailResponse> {
+    const response = await apiClient.get<QueryDetailResponse>(
+      `/api/v1/queries/${queryName}`,
+      withNamespace(namespace),
+    );
+    return response;
+  },
+
+  async create(
+    query: QueryCreateRequest,
+    namespace?: string,
+  ): Promise<QueryDetailResponse> {
     const response = await apiClient.post<QueryDetailResponse>(
       `/api/v1/queries`,
       query,
+      withNamespace(namespace),
     );
 
     trackEvent({
@@ -43,16 +55,18 @@ export const queriesService = {
   async update(
     queryName: string,
     query: QueryUpdateRequest,
+    namespace?: string,
   ): Promise<QueryDetailResponse> {
     const response = await apiClient.put<QueryDetailResponse>(
       `/api/v1/queries/${queryName}`,
       query,
+      withNamespace(namespace),
     );
     return response;
   },
 
-  async delete(queryName: string): Promise<void> {
-    await apiClient.delete(`/api/v1/queries/${queryName}`);
+  async delete(queryName: string, namespace?: string): Promise<void> {
+    await apiClient.delete(`/api/v1/queries/${queryName}`, withNamespace(namespace));
 
     trackEvent({
       name: 'query_deleted',
@@ -62,9 +76,11 @@ export const queriesService = {
     });
   },
 
-  async cancel(queryName: string): Promise<QueryDetailResponse> {
+  async cancel(queryName: string, namespace?: string): Promise<QueryDetailResponse> {
     const response = await apiClient.patch<QueryDetailResponse>(
       `/api/v1/queries/${queryName}/cancel`,
+      undefined,
+      withNamespace(namespace),
     );
 
     trackEvent({
@@ -77,9 +93,9 @@ export const queriesService = {
     return response;
   },
 
-  async getStatus(queryName: string): Promise<string> {
+  async getStatus(queryName: string, namespace?: string): Promise<string> {
     try {
-      const query = await this.get(queryName);
+      const query = await this.get(queryName, namespace);
       return (query.status as { phase?: string })?.phase || 'unknown';
     } catch (error) {
       console.error(`Failed to get status for query ${queryName}:`, error);
@@ -90,11 +106,12 @@ export const queriesService = {
   async streamQueryStatus(
     queryName: string,
     onUpdate: (status: string, query?: QueryDetailResponse) => void,
+    namespace?: string,
   ): Promise<{ terminal: boolean; finalStatus: string }> {
     return new Promise(resolve => {
       const pollStatus = async () => {
         try {
-          const query = await this.get(queryName);
+          const query = await this.get(queryName, namespace);
           const status =
             (query.status as { phase?: string })?.phase || 'unknown';
 

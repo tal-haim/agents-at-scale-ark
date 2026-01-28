@@ -2,28 +2,34 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
-import type { ModelUpdateRequest } from './models';
+import type { ModelCreateRequest, ModelUpdateRequest } from './models';
 import { modelsService } from './models';
 
 export const GET_ALL_MODELS_QUERY_KEY = 'get-all-models';
 export const GET_MODEL_BY_ID_QUERY_KEY = 'get-model-by-id';
 
-export const useGetAllModels = () => {
+type UseGetAllModelsProps = {
+  namespace?: string;
+};
+
+export const useGetAllModels = (props?: UseGetAllModelsProps) => {
   return useQuery({
-    queryKey: [GET_ALL_MODELS_QUERY_KEY],
-    queryFn: modelsService.getAll,
+    queryKey: [GET_ALL_MODELS_QUERY_KEY, props?.namespace],
+    queryFn: () => modelsService.getAll(props?.namespace),
   });
 };
 
 type UseCreateModelProps = {
   onSuccess?: () => void;
+  namespace?: string;
 };
 
 export const useCreateModel = (props?: UseCreateModelProps) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: modelsService.create,
+    mutationFn: (model: ModelCreateRequest) =>
+      modelsService.create(model, props?.namespace),
     onSuccess: model => {
       toast.success('Model Created', {
         description: `Successfully created ${model.name}`,
@@ -35,7 +41,7 @@ export const useCreateModel = (props?: UseCreateModelProps) => {
         props.onSuccess();
       }
     },
-    onError: (error, data) => {
+    onError: (error: unknown, data) => {
       const getMessage = () => {
         if (error instanceof Error) {
           return error.message;
@@ -52,12 +58,13 @@ export const useCreateModel = (props?: UseCreateModelProps) => {
 
 type UseGetModelbyIdProps = {
   modelId: string | number;
+  namespace?: string;
 };
 
-export const useGetModelbyId = ({ modelId }: UseGetModelbyIdProps) => {
+export const useGetModelbyId = ({ modelId, namespace }: UseGetModelbyIdProps) => {
   const query = useQuery({
-    queryKey: [GET_MODEL_BY_ID_QUERY_KEY, modelId],
-    queryFn: () => modelsService.getById(modelId),
+    queryKey: [GET_MODEL_BY_ID_QUERY_KEY, modelId, namespace],
+    queryFn: () => modelsService.getById(modelId, namespace),
   });
 
   useEffect(() => {
@@ -74,12 +81,16 @@ export const useGetModelbyId = ({ modelId }: UseGetModelbyIdProps) => {
   return query;
 };
 
-export const useUpdateModelById = () => {
+type UseUpdateModelByIdProps = {
+  namespace?: string;
+};
+
+export const useUpdateModelById = (props?: UseUpdateModelByIdProps) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, ...data }: ModelUpdateRequest & { id: string }) => {
-      return modelsService.updateById(id, data);
+      return modelsService.updateById(id, data, props?.namespace);
     },
     onSuccess: model => {
       toast.success('Model Updated', {
@@ -93,7 +104,7 @@ export const useUpdateModelById = () => {
         });
       }
     },
-    onError: (error, data) => {
+    onError: (error: unknown, data) => {
       const getMessage = () => {
         if (error instanceof Error) {
           return error.message;
