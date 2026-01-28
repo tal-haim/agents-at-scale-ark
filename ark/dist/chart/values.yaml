@@ -83,6 +83,9 @@ metrics:
 # the edit command with the '--force' flag
 webhook:
   enable: true
+  # Port exposed by the ark-webhook-service AND used by webhook clientConfig.service.port.
+  # Override via Helm CLI: --set webhook.servicePort=9443
+  servicePort: 9443
   timeoutSeconds: 30
   failurePolicy: Fail
 
