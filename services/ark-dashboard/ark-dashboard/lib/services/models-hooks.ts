@@ -61,7 +61,10 @@ type UseGetModelbyIdProps = {
   namespace?: string;
 };
 
-export const useGetModelbyId = ({ modelId, namespace }: UseGetModelbyIdProps) => {
+export const useGetModelbyId = ({
+  modelId,
+  namespace,
+}: UseGetModelbyIdProps) => {
   const query = useQuery({
     queryKey: [GET_MODEL_BY_ID_QUERY_KEY, modelId, namespace],
     queryFn: () => modelsService.getById(modelId, namespace),

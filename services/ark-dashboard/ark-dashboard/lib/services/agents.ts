@@ -91,7 +91,10 @@ export const agentsService = {
   },
 
   // Get a single agent by ID (for UI compatibility - ID is actually the name)
-  async getById(id: number | string, namespace?: string): Promise<Agent | null> {
+  async getById(
+    id: number | string,
+    namespace?: string,
+  ): Promise<Agent | null> {
     // Convert numeric ID to string name
     const name = String(id);
     return agentsService.getByName(name, namespace);
@@ -162,7 +165,10 @@ export const agentsService = {
 
   async delete(name: string, namespace?: string): Promise<boolean> {
     try {
-      await apiClient.delete(`/api/v1/agents/${name}`, withNamespace(namespace));
+      await apiClient.delete(
+        `/api/v1/agents/${name}`,
+        withNamespace(namespace),
+      );
 
       trackEvent({
         name: 'agent_deleted',

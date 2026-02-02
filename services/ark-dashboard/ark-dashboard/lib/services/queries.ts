@@ -20,7 +20,10 @@ export const queriesService = {
     return response;
   },
 
-  async get(queryName: string, namespace?: string): Promise<QueryDetailResponse> {
+  async get(
+    queryName: string,
+    namespace?: string,
+  ): Promise<QueryDetailResponse> {
     const response = await apiClient.get<QueryDetailResponse>(
       `/api/v1/queries/${queryName}`,
       withNamespace(namespace),
@@ -66,7 +69,10 @@ export const queriesService = {
   },
 
   async delete(queryName: string, namespace?: string): Promise<void> {
-    await apiClient.delete(`/api/v1/queries/${queryName}`, withNamespace(namespace));
+    await apiClient.delete(
+      `/api/v1/queries/${queryName}`,
+      withNamespace(namespace),
+    );
 
     trackEvent({
       name: 'query_deleted',
@@ -76,7 +82,10 @@ export const queriesService = {
     });
   },
 
-  async cancel(queryName: string, namespace?: string): Promise<QueryDetailResponse> {
+  async cancel(
+    queryName: string,
+    namespace?: string,
+  ): Promise<QueryDetailResponse> {
     const response = await apiClient.patch<QueryDetailResponse>(
       `/api/v1/queries/${queryName}/cancel`,
       undefined,

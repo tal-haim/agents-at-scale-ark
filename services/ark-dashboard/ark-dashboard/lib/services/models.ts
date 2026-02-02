@@ -64,7 +64,10 @@ export const modelsService = {
   },
 
   // Get a single model by ID (for UI compatibility - ID is actually the name)
-  async getById(id: number | string, namespace?: string): Promise<Model | null> {
+  async getById(
+    id: number | string,
+    namespace?: string,
+  ): Promise<Model | null> {
     // Convert numeric ID to string name
     const name = String(id);
     return modelsService.getByName(name, namespace);
@@ -134,7 +137,10 @@ export const modelsService = {
 
   async delete(name: string, namespace?: string): Promise<boolean> {
     try {
-      await apiClient.delete(`/api/v1/models/${name}`, withNamespace(namespace));
+      await apiClient.delete(
+        `/api/v1/models/${name}`,
+        withNamespace(namespace),
+      );
 
       trackEvent({
         name: 'model_deleted',

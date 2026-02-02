@@ -1,7 +1,7 @@
 FROM node:25.4.0-alpine AS base
 
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache gcompat
 WORKDIR /app
 
 COPY ark-dashboard/package.json ark-dashboard/package-lock.json* ./
